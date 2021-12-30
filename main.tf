@@ -1,0 +1,88 @@
+data "aws_vpc" "main" {
+  id = var.vpc_id
+}
+
+data "template_file" "user_data" {
+  template = file("${abspath(path.module)}/userdata.yaml")
+}
+
+data "aws_ami" "amazon-linux-2" {
+  most_recent = true
+  owners      = ["amazon"]
+
+
+  filter {
+    name   = "owner-alias"
+    values = ["amazon"]
+  }
+
+
+  filter {
+    name   = "name"
+    values = ["amzn2-ami-hvm*"]
+  }
+}
+
+# KEY PAIR
+resource "aws_key_pair" "deployer" {
+  key_name   = "deployer-key"
+  public_key = var.public_key
+}
+
+# SECURITY GROUP
+resource "aws_security_group" "sg_terraserver2" {
+  name        = "sg_terraserver2"
+  description = "my security group for terraserver2"
+  vpc_id      = data.aws_vpc.main.id
+
+  ingress = [
+    {
+      description      = "HTTP access"
+      from_port        = 80
+      to_port          = 80
+      protocol         = "tcp"
+      cidr_blocks      = ["0.0.0.0/0"]
+      ipv6_cidr_blocks = []
+      prefix_list_ids  = []
+      security_groups  = []
+      self             = false
+    },
+    {
+      description      = "SSH access"
+      from_port        = 22
+      to_port          = 22
+      protocol         = "tcp"
+      cidr_blocks      = []
+      ipv6_cidr_blocks = [var.my_ip_with_cidr]
+      prefix_list_ids  = []
+      security_groups  = []
+      self             = false
+    }
+  ]
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+    prefix_list_ids  = []
+    security_groups  = []
+    self             = false
+  }
+
+}
+
+# EC2 INSTANCE
+resource "aws_instance" "my_terraserver2" {
+  ami                    = data.aws_ami.amazon-linux-2.id # "ami-0ed9277fb7eb570c9"
+  instance_type          = var.instance_type
+  key_name               = aws_key_pair.deployer.key_name
+  vpc_security_group_ids = [aws_security_group.sg_terraserver2.id]
+  user_data              = data.template_file.user_data.rendered
+
+  tags = {
+    Name = var.server_name
+  }
+}
+
