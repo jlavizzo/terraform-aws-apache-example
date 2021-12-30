@@ -1,11 +1,14 @@
+# retrieving vpc
 data "aws_vpc" "main" {
   id = var.vpc_id
 }
 
+# retrieving user data file
 data "template_file" "user_data" {
   template = file("${abspath(path.module)}/userdata.yaml")
 }
 
+# retrieving ami
 data "aws_ami" "amazon-linux-2" {
   most_recent = true
   owners      = ["amazon"]
@@ -30,9 +33,9 @@ resource "aws_key_pair" "deployer" {
 }
 
 # SECURITY GROUP
-resource "aws_security_group" "sg_terraserver2" {
-  name        = "sg_terraserver2"
-  description = "my security group for terraserver2"
+resource "aws_security_group" "sg_terraserver" {
+  name        = "sg_terraserver"
+  description = "my security group for terraserver"
   vpc_id      = data.aws_vpc.main.id
 
   ingress = [
@@ -74,11 +77,11 @@ resource "aws_security_group" "sg_terraserver2" {
 }
 
 # EC2 INSTANCE
-resource "aws_instance" "my_terraserver2" {
+resource "aws_instance" "my_terraserver" {
   ami                    = data.aws_ami.amazon-linux-2.id # "ami-0ed9277fb7eb570c9"
   instance_type          = var.instance_type
   key_name               = aws_key_pair.deployer.key_name
-  vpc_security_group_ids = [aws_security_group.sg_terraserver2.id]
+  vpc_security_group_ids = [aws_security_group.sg_terraserver.id]
   user_data              = data.template_file.user_data.rendered
 
   tags = {
