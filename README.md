@@ -1,6 +1,6 @@
-terraform module to provision an EC2 instance that is running Pachae
+terraform module to provision an EC2 instance that runs Apache
 
-not intended for productin use. Just showcasing how to create a custom module on Terraform Registry
+not intended for production use. this is a how-to in creating custom modules in Terraform Registry
 
 ```hcl
 terraform {
