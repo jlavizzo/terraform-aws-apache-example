@@ -5,7 +5,7 @@ variable "vpc_id" {
 
 variable "my_ip_with_cidr" {
   type = string
-  description = "provide your ipv6 eg. <IPv6 ADDRESS>/128"
+  description = "provide your ipv6 e.g. <IPv6 ADDRESS>/128"
 }
 
 variable "public_key" {
