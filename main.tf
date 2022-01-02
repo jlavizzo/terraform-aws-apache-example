@@ -3,6 +3,11 @@ data "aws_vpc" "main" {
   id = var.vpc_id
 }
 
+# retrieving the subnet ids for a specfic vpc
+data "aws_subnet_ids" "my_subnet_ids" {
+  vpc_id = var.vpc_id
+}
+
 # retrieving user data file
 data "template_file" "user_data" {
   template = file("${abspath(path.module)}/userdata.yaml")
@@ -79,6 +84,7 @@ resource "aws_security_group" "sg_terraserver" {
 # EC2 INSTANCE
 resource "aws_instance" "my_terraserver" {
   ami                    = data.aws_ami.amazon-linux-2.id # "ami-0ed9277fb7eb570c9"
+  subnet_id = tolist(data.aws_subnet_ids.my_subnet_ids.ids)[0]
   instance_type          = var.instance_type
   key_name               = aws_key_pair.deployer.key_name
   vpc_security_group_ids = [aws_security_group.sg_terraserver.id]
